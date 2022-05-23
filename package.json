@@ -1,0 +1,22 @@
+{
+  "name": "poro",
+  "version": "1.0.0",
+  "main": "src/app.ts",
+  "description": "",
+  "author": "dayrain (blackwaterbread)",
+  "license": "MIT",
+  "scripts": {
+    "app": "ts-node src/app.ts",
+    "build": "ncc build src/app.ts --out dist"
+  },
+  "dependencies": {
+    "commander": "^8.3.0",
+    "sharp": "^0.29.3"
+  },
+  "devDependencies": {
+    "@types/node": "^16.11.9",
+    "@types/sharp": "^0.29.4",
+    "@vercel/ncc": "^0.32.0",
+    "typescript": "^4.3.5"
+  }
+}
