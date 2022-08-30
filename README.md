@@ -19,6 +19,8 @@ Commands:
     archive <process> <preset> <path> [out_path] [out_filename]  work with YKCMP_V1 format (*.fad) file
     presets                                                      Show some presets (na, ms)
     help [command]                                               display help for command
+Options:
+    -r, --raw: Whether or not to output raw data (for decompressing)
 Examples:
     Decompress some midnight shadows image archive
     --> ts-node src/app.ts archive dec ms data/ch6030.fad decompressed

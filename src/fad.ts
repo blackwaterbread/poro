@@ -221,6 +221,7 @@ export async function decompress(filePath: string, offsets: PresetCountByteOffse
                 fs.writeFileSync(`${outPath}/${imageOutputName}.png`, imageOutput);
 
                 if (outputRawData) {
+                    fs.writeFileSync(`${outPath}/${imageOutputName}.ykcmp`, rawBuffer);
                     fs.writeFileSync(`${outPath}/${imageOutputName}.raw`, bufferImage);
                     fs.writeFileSync(`${outPath}/${imageOutputName}.merged_raw`, bufferMergedImage!);
                 }
