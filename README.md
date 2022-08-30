@@ -13,7 +13,8 @@ It may be applicable to other Nippon Ichi Software games if modified properly.
 # How to Use
 ```
 Usage:
-    ts-node src/app.ts <process> ...some options
+    ts-node src/app.ts <process> ...some options (source)
+    node poro.js <process> ...some options (release)
 Commands:
     script <process> <preset> <path> [out_path]                  work with script (*.dat) file.
     archive <process> <preset> <path> [out_path] [out_filename]  work with YKCMP_V1 format (*.fad) file
