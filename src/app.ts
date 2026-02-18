@@ -28,10 +28,10 @@ program
     .description('work with script (*.dat) file.')
     .action(async (process, preset, path, out_path) => {
         if (process === 'dec') {
-            await script.decompress(path, preset, out_path);
+            script.decompress(path, preset, out_path);
         }
         else {
-            return;
+            script.compress(path, preset, out_path, path.split('/').slice(-1)[0].split('.').slice(0, -1).join('.'));
         }
     });
 
