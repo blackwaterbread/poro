@@ -84,6 +84,7 @@ export async function compress(filePath: string, preset: PresetCountByteOffset, 
 
         let offsetP1 = bFadHeader;
         let offsetP2 = bFadHeader + bContentsHeader;
+
         for (const [i, v] of animsInfo.entries()) {
             const buffer = animBuffers[i];
             const cmpSize = buffer.length;
@@ -99,8 +100,11 @@ export async function compress(filePath: string, preset: PresetCountByteOffset, 
             archiveBuffer.set(header, offsetP1);
             archiveBuffer.set(buffer, offsetP2);
             offsetP1 += BYTE_HEADER;
-            if (i === animsInfo.length - 1)
+
+            if (i === animsInfo.length - 1) {
                 offsetP2 += (cmpSize + remainsAnim[i]);
+            }
+
             console.log(`<-- in ${v.name} (size: ${cmpSize}, type: ${v.type})`);
         }
 
@@ -146,15 +150,18 @@ export async function compress(filePath: string, preset: PresetCountByteOffset, 
             );
         }
 
-        if (!fs.existsSync(outPath))
+        if (!fs.existsSync(outPath)) {
             fs.mkdirSync(outPath, { recursive: true });
+        }
 
         fs.writeFileSync(`${outPath}/${outFile}`, archiveBuffer);
         console.log('successfully builded.');
     }
+
     catch (e: any) {
         console.error(e.message);
     }
+
     finally {
         console.timeEnd('elapses');
     }
@@ -164,8 +171,10 @@ export async function decompress(filePath: string, offsets: PresetCountByteOffse
     try {
         const buffer = fs.readFileSync(filePath);
         const fileName = path.basename(filePath);
+
         console.log(`decompressing ${fileName} ...`);
         console.time('elapses');
+
         const { anims1, anims2, images, dummy } = offsets;
         const animCount = buffer.readInt32LE(anims1) + buffer.readInt32LE(anims2);
         const imageCount = buffer.readInt32LE(images);
@@ -173,14 +182,16 @@ export async function decompress(filePath: string, offsets: PresetCountByteOffse
         const anims = headers.slice(0, animCount);
         const pics = headers.slice(animCount, animCount + imageCount);
 
-        if (!fs.existsSync(outPath))
+        if (!fs.existsSync(outPath)) {
             fs.mkdirSync(outPath, { recursive: true });
+        }
 
         try {
             for (const [index, value] of anims.entries()) {
                 const { offset, length, name, type } = value;
                 const animOutput = buffer.slice(offset, offset + length);
                 const animOutputName = `anim${SPLIT_CHAR}${index.toString().padStart(3, '0')}${SPLIT_CHAR}${name}${SPLIT_CHAR}${type}`;
+                
                 fs.writeFileSync(`${outPath}/${animOutputName}.dat`, animOutput);
                 console.log(`--> out ${animOutputName} (size: ${length}, dec-size: ${animOutput.length}, type: ${type})`);
             }
@@ -198,8 +209,9 @@ export async function decompress(filePath: string, offsets: PresetCountByteOffse
                     swizzled: imgBuffer.readUInt8(0x1F)
                 }
 
-                if (header.width === 0 || header.height === 0)
+                if (header.width === 0 || header.height === 0) {
                     return;
+                }
 
                 const rawBuffer = imgBuffer.slice(0x30);
                 let flagRaw = header.cmpSize === header.decSize;
@@ -209,6 +221,7 @@ export async function decompress(filePath: string, offsets: PresetCountByteOffse
                 if (header.bpp === 32) {
                     bufferMergedImage = bufferImage;
                 }
+
                 else if (header.palEntries) {
                     const palette = getPalette(bufferImage, header.palEntries);
                     const image = bufferImage.slice(header.palEntries * 4); // 0x400 ~
@@ -216,8 +229,7 @@ export async function decompress(filePath: string, offsets: PresetCountByteOffse
                 }
 
                 const imageOutput = await convertRawToImage(bufferMergedImage!, header.width, header.height);
-                const imageOutputName = `img${SPLIT_CHAR}${i.toString().padStart(3, '0')}` + 
-                    `${SPLIT_CHAR}${name}${SPLIT_CHAR}${header.bpp}${SPLIT_CHAR}${header.palEntries}.${flagRaw ? 'raw' : 'ykcmp'}`;
+                const imageOutputName = `img${SPLIT_CHAR}${i.toString().padStart(3, '0')}` + `${SPLIT_CHAR}${name}${SPLIT_CHAR}${header.bpp}${SPLIT_CHAR}${header.palEntries}.${flagRaw ? 'raw' : 'ykcmp'}`;
                 fs.writeFileSync(`${outPath}/${imageOutputName}.png`, imageOutput);
 
                 if (outputRawData) {
@@ -231,13 +243,16 @@ export async function decompress(filePath: string, offsets: PresetCountByteOffse
                 );
             }
         }
+
         catch (e: any) {
             console.error(e.message);
         }
+
         finally {
             console.timeEnd('elapses');
         }
     }
+
     catch (e: any) {
         console.error(e.message);
     }
@@ -245,6 +260,7 @@ export async function decompress(filePath: string, offsets: PresetCountByteOffse
 
 function getHeaders(buffer: Buffer, count: number, dummy: number = 0) {
     const output: HeaderFad[] = []
+
     for (let i = 0; i < count; i++) {
         const p = (i + 1) * 0x20 + dummy;
         const entry = buffer.slice(p, p + 0x20);
@@ -253,6 +269,7 @@ function getHeaders(buffer: Buffer, count: number, dummy: number = 0) {
         const length = entry.readUInt32LE(0x08);
         const type = entry.readUInt32LE(0x0C);
         const offset = entry.readUInt32LE(0x10);
+
         output.push({
             name: name,
             length: length,
@@ -260,6 +277,7 @@ function getHeaders(buffer: Buffer, count: number, dummy: number = 0) {
             offset: offset
         });
     }
+    
     return output;
 }
 
@@ -272,8 +290,10 @@ export function parseAnimInfo(dirPath: string): InfoAnim[] {
     try {
         const files = fs.readdirSync(dirPath);
         const aFiles = files.filter(x => getExtension(x) === FORMAT_ANIM);
+        
         const result: InfoAnim[] = aFiles.map(filename => {
             const inf = filename.split('.')[0].split(SPLIT_CHAR);
+
             if (inf[0] === PREFIX_ANIM) {
                 return {
                     index: parseInt(inf[1]),
@@ -282,12 +302,15 @@ export function parseAnimInfo(dirPath: string): InfoAnim[] {
                     path: `${dirPath}/${filename}`
                 }
             }
+
             else {
                 throw new Error();
             }
         });
+
         return result;
     }
+
     catch {
         throw new Error('Invalid anim format file name');
     }
@@ -297,9 +320,11 @@ export function parseImageInfo(dirPath: string): InfoImage[] {
     try {
         const files = fs.readdirSync(dirPath);
         const aFiles = files.filter(x => getExtension(x) === FORMAT_IMAGE);
+
         const result: InfoImage[] = aFiles.map(filename => {
             const sp1 = filename.split('.');
             const sp2 = sp1[0].split(SPLIT_CHAR);
+            
             if (sp2[0] === PREFIX_IMAGE) {
                 return {
                     index: parseInt(sp2[1]),
@@ -310,12 +335,15 @@ export function parseImageInfo(dirPath: string): InfoImage[] {
                     path: `${dirPath}/${filename}`
                 }
             }
+
             else {
                 throw new Error();
             }
         });
+
         return result;
     }
+
     catch {
         throw new Error('Invalid anim format file name');
     }
